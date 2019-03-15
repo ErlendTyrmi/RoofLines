@@ -22,13 +22,17 @@ double getCoveredPart(Line line, Line *lines){
     for (int i = 0; i < n; i++){
         Line otherLine = lines[i];
         if (otherLine.R_X < line.R_X && otherLine.L_X > line.R_X){
-            result = line.L_X - otherLine.L_X;
+            // return as soon as the whoe line is covered
         } else if (line.R_X < otherLine.R_X && line.L_X > otherLine.R_X)){
-            if
+
         }
 
     }
-    return covered;
+    if (covered > 0){
+        return covered;
+    } else {
+        return 0;
+    }
 }
 
 double getYofX(Line line, double x){
