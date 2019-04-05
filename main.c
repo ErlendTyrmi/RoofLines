@@ -9,7 +9,7 @@ typedef struct line{
     double X2;
     double Y2;
     int drip;
-    int checked;
+    bool checked;
 } Line;
 
 int n;
@@ -65,7 +65,7 @@ double getAccumulatedRain(Line line, Line lines[n]){
 }
 
 Line findHighestUncheckedLine(Line *lines){
-    Line highest = {0, 0, 0, 0, 0, 0};
+    Line highest = {0, 0, 0, 0, 0, false};
     for (int i = 0; i<n;i++){
         if (lines[i].checked = 0)
         if (isLowerLine(highest, lines[i])){
@@ -87,7 +87,7 @@ int main() {
 
     // Make array of lines:
     for (int i = 0; i < n; i++){
-        scanf("%lf %lf %lf %lf %d %d", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2, 0, 0);
+        scanf("%lf %lf %lf %lf %d %d", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2, 0, false);
     }
 
 
