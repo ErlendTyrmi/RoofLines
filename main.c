@@ -29,16 +29,6 @@ bool firstIsLowest(Line low, Line high) {
     return getYofX(low, x) < getYofX(high, x) ? true : false;
 }
 
-//bool overlapsLine(Line a, Line b) {
-//    if  (a.X1 <= b.X1 && a.X2 > b.X1){
-//        return true;
-//    } else if (b.X1 <= a.X1 && b.X2 > a.X1) {
-//        return true;
-//    } else {
-//        return false;
-//    }
-//}
-
 bool overlapsPoint(Line line, int x) {
     if (line.X1 <= x && line.X2 > x) {
         return true;
@@ -60,12 +50,11 @@ int getHighestLineAtXCoordinate(Line *lines, int x) {
     int lineNumber = 0;
     for (int i = 1; i <= n; i++) {
         if (overlapsPoint(lines[i], x)) {
-            if (firstIsLowest(lines[lineNumber], lines[i])) {
+            if (firstIsLowest(lines[lineNumber], lines[i]) || lineNumber == 0) {
                 lineNumber = i;
             }
         }
     }
-    printf("Line %d is highest at x value %.d.\n", lineNumber, x);
     return lineNumber;
 }
 
@@ -78,9 +67,7 @@ void updateRain(Line *lines) {
         lineNumber = getHighestLineAtXCoordinate(lines, rainPoint);
 
         if (lineNumber != 0) {
-            printf("Line %d used to have %d rain.\n", lineNumber, lines[lineNumber].totalDrip);
             lines[lineNumber].totalDrip += 1;
-            printf("Line %d now has %d rain.\n", lineNumber, lines[lineNumber].totalDrip);
         }
     }
 }
@@ -150,17 +137,8 @@ int main() {
             highestX = lines[i].X2;
         }
     }
-    lines[0].X1 = 0;
-    lines[0].Y1 = 0;
-    lines[0].X2 = highestX;
-    lines[0].Y2 = 0;
-    updateRain(lines);
 
-    printf("First line at 1m %lf \n", getYofX(lines[3], 1.0));
-    printf("TEST: preliminary rain on roofs:\n");
-    for (int i = 1; i < n+1; i++){
-        printf("%d \n", lines[i].totalDrip);
-    }
+    updateRain(lines);
     updateChildRoofs(lines);
     getAccumulatedDrip(lines);
 
