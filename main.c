@@ -8,11 +8,8 @@ typedef struct line {
     // Right (x,y)
     int X2;
     int Y2;
-    // Accumulated rain dripping from this roof.
     int totalDrip;
-    // Roof that receives water from this.
     int childRoof;
-    // Does this roof receive water from other roof?
     bool isChild;
     bool checked;
 } Line;
@@ -44,6 +41,14 @@ bool firstIsLowest(Line low, Line high) {
 
 bool overlapsPoint(Line line, int x) {
     if (line.X1 <= x && line.X2 > x) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool overlapsPointIncludingX2(Line line, int x) {
+    if (line.X1 <= x && line.X2 >= x) {
         return true;
     } else {
         return false;
@@ -90,7 +95,7 @@ void updateChildRoofs(Line *lines) {
         if (lines[i].totalDrip != 0) {
 
             for (int j = 1; j < n + 1; j++) {
-                if (overlapsPoint(lines[j], getDripPoint(lines[i])) && firstIsLowest(lines[j], lines[i])) {
+                if (overlapsPointIncludingX2(lines[j], getDripPoint(lines[i])) && firstIsLowest(lines[j], lines[i])) {
                     if (topLineID == 0) {
                         topLineID = j;
                     } else if (firstIsLowest(lines[topLineID], lines[j])) {
@@ -137,14 +142,18 @@ int main() {
         scanf("%d %d %d %d", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2);
         lines[i].totalDrip = 0;
         lines[i].childRoof = 0;
+        lines[i].isChild = false;
+        lines[i].checked = false;
 
         // The one x value to rule them all..
         if (lines[i].X2 > highestX) {
             highestX = lines[i].X2;
         }
-
-
     }
+    lines[0].X1 = 0;
+    lines[0].Y1 = 0;
+    lines[0].X2 = highestX;
+    lines[0].Y2 = 0;
     updateRain(lines);
 
     printf("First line at 1m %lf \n", getYofX(lines[3], 1.0));
