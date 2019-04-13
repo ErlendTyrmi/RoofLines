@@ -11,7 +11,6 @@ typedef struct line {
     int totalDrip;
     int childRoof;
     bool isChild;
-    bool checked;
 } Line;
 
 int n, highestX = 0;
@@ -60,7 +59,7 @@ int getHighestLineAtXCoordinate(Line *lines, int x) {
 
 void updateRain(Line *lines) {
     // This method updates the totalDrip attribute in place (on the line struct).
-    double rainPoint;
+    int rainPoint;
     int lineNumber;
     for (int i = 0; i <= highestX; i++) {
         rainPoint = i;
@@ -88,10 +87,10 @@ void updateChildRoofs(Line *lines) {
                     } else if (firstIsLowest(lines[topLineID], lines[j])) {
                         topLineID = j;
                     }
-
                 }
             }
         }
+
         // Adding child roof to parent and marking child with 'isChild'.
         if (topLineID != 0){
                 lines[i].childRoof = topLineID;
@@ -100,15 +99,16 @@ void updateChildRoofs(Line *lines) {
     }
 }
 
+//TODO: add more layers
 void inheritRain(int lineID, Line *lines){
-    // Lines pass on flow to child roof
-        lines[lines[lineID].childRoof].totalDrip += lines[lineID].totalDrip;
+    lines[lines[lineID].childRoof].totalDrip += lines[lineID].totalDrip;
 }
 
 
 void getAccumulatedDrip(Line *lines) {
+    // Lines with no parent pass on rain to all child roofs.
     for (int i = 1; i < n+1; i++){
-        if (!lines[i].isChild && !lines[i].checked){
+        if (!lines[i].isChild) {
             inheritRain(i, lines);
         }
     }
@@ -116,7 +116,7 @@ void getAccumulatedDrip(Line *lines) {
 
 int main() {
 
-    printf("Hello! This program prints the total water flow from each roof, represented by a line. "
+    printf("Hello! This program prints the total water flow from each roof, represented by a line.\n"
            "First: Please input the following info: Number of lines to check, followed by enter.\n"
            "For all subsequent lines: Four coordinates separated by spaces, followed by enter.\n->");
 
@@ -130,7 +130,6 @@ int main() {
         lines[i].totalDrip = 0;
         lines[i].childRoof = 0;
         lines[i].isChild = false;
-        lines[i].checked = false;
 
         // The one x value to rule them all..
         if (lines[i].X2 > highestX) {
