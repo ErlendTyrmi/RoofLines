@@ -3,50 +3,54 @@
 
 typedef struct line {
     // Left (x,y)
-    double X1;
-    double Y1;
+    int X1;
+    int Y1;
     // Right (x,y)
-    double X2;
-    double Y2;
+    int X2;
+    int Y2;
     // Accumulated rain dripping from this roof.
     int totalDrip;
-    int parents[25];
+    // Roof that receives water from this.
+    int childRoof;
+    // Does this roof receive water from other roof?
+    bool isChild;
     bool checked;
 } Line;
 
 int n, highestX = 0;
-Line lines[];
 
-double getWidth(Line line) {
-    return line.X2 - line.X1;
-}
-
-double getYofX(Line line, double x) {
+double getYofX(Line line, int x) {
     // Calculating ax + b based on Left coordinate(X1, Y1)
-    double a = (line.Y2 - line.Y1) / (line.X2 - line.X1);
-    double b = line.Y1 - a * line.X1;
+    double a = (double)(line.Y2 - line.Y1) / (double)(line.X2 - line.X1);
+    double b = (double)line.Y1 - a * (double)line.X1;
     return a * x + b;
 }
 
 bool firstIsLowest(Line low, Line high) {
     // Find x value to test with. Takes highest right x. Works if x-values overlap!
-    int x = (low.X1 < high.X1 ? high.X1 : low.X1);
+    int x = (low.X1 <= high.X1 ? high.X1 : low.X1);
     return getYofX(low, x) < getYofX(high, x) ? true : false;
 }
 
-bool overlapsLine(Line a, Line b) {
-    int x = (a.X1 < b.X1 ? b.X1 : a.X1);
-}
+//bool overlapsLine(Line a, Line b) {
+//    if  (a.X1 <= b.X1 && a.X2 > b.X1){
+//        return true;
+//    } else if (b.X1 <= a.X1 && b.X2 > a.X1) {
+//        return true;
+//    } else {
+//        return false;
+//    }
+//}
 
 bool overlapsPoint(Line line, int x) {
-    if (line.X1 < x && line.X2 > x) {
+    if (line.X1 <= x && line.X2 > x) {
         return true;
     } else {
         return false;
     }
 }
 
-int getHighestLineAtXCoordinate(Line *liLine nes, int x) {
+int getHighestLineAtXCoordinate(Line *lines, int x) {
     // Method to return id of highest line at a certain point on the x-axis.
     int lineNumber = 0;
     for (int i = 1; i <= n; i++) {
@@ -56,34 +60,37 @@ int getHighestLineAtXCoordinate(Line *liLine nes, int x) {
             }
         }
     }
+    printf("Line %d is highest at x value %.d.\n", lineNumber, x);
     return lineNumber;
 }
 
 void updateRain(Line *lines) {
-    // This method updates the totalDrip attribute in place (on the actual line struct).
+    // This method updates the totalDrip attribute in place (on the line struct).
     double rainPoint;
-    Line highestLine;
-    for (int i = 0; i < highestX; i++) {
-        rainPoint = i + 0.5;
-        int lineNumber = getHighestLineAtXCoordinate(lines, rainPoint);
+    int lineNumber;
+    for (int i = 0; i <= highestX; i++) {
+        rainPoint = i;
+        lineNumber = getHighestLineAtXCoordinate(lines, rainPoint);
 
         if (lineNumber != 0) {
+            printf("Line %d used to have %d rain.\n", lineNumber, lines[lineNumber].totalDrip);
             lines[lineNumber].totalDrip += 1;
+            printf("Line %d now has %d rain.\n", lineNumber, lines[lineNumber].totalDrip);
         }
     }
 }
 
 int getDripPoint(Line line) {
-    return (line.Y1 < line.Y2 ? line.X1 : line.X1);
+    return (line.Y1 < line.Y2 ? line.X1 : line.X2);
 }
 
-void updateParents(Line *lines) {
+void updateChildRoofs(Line *lines) {
     for (int i = 1; i < n + 1; i++) {
         int topLineID = 0;
         if (lines[i].totalDrip != 0) {
 
             for (int j = 1; j < n + 1; j++) {
-                if (overlapsLine(lines[i], lines[j]) && firstIsLowest(lines[j], lines[i])) {
+                if (overlapsPoint(lines[j], getDripPoint(lines[i])) && firstIsLowest(lines[j], lines[i])) {
                     if (topLineID == 0) {
                         topLineID = j;
                     } else if (firstIsLowest(lines[topLineID], lines[j])) {
@@ -93,30 +100,23 @@ void updateParents(Line *lines) {
                 }
             }
         }
-        // Adding parent (i) to first empty slot in the array of the line with an ID of topLineID
+        // Adding child roof to parent and marking child with 'isChild'.
         if (topLineID != 0){
-            for (int k = 0; k < 25; k++) {
-                if (lines[topLineID].parents[k] == 0) {
-                    lines[topLineID].parents[k] = i;
-                    break;
-                }
-            }
+                lines[i].childRoof = topLineID;
+                lines[topLineID].isChild = true;
         }
     }
 }
 
-int inheritRain(int lineID, Line *lines){
-    for (int i = 0; i < 25; i++){
-        if (lines[lineID].parents[i] != 0){
-            lines[lineID].totalDrip += inheritRain(i, lines);
-            lines[lineID].checked = true;
-        }
-    }
+void inheritRain(int lineID, Line *lines){
+    // Lines pass on flow to child roof
+        lines[lines[lineID].childRoof].totalDrip += lines[lineID].totalDrip;
 }
 
-void getAccumulatedDrip(Line *lines){
+
+void getAccumulatedDrip(Line *lines) {
     for (int i = 1; i < n+1; i++){
-        if (!lines[i].checked){
+        if (!lines[i].isChild && !lines[i].checked){
             inheritRain(i, lines);
         }
     }
@@ -130,11 +130,13 @@ int main() {
 
     // Get number of lines: n
     scanf("%d", &n);
-    lines[n + 1];
+    Line lines[n + 1];
 
     // Make array of lines:
     for (int i = 1; i < n+1; i++) {
-        scanf("%lf %lf %lf %lf", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2);
+        scanf("%d %d %d %d", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2);
+        lines[i].totalDrip = 0;
+        lines[i].childRoof = 0;
 
         // The one x value to rule them all..
         if (lines[i].X2 > highestX) {
@@ -144,12 +146,18 @@ int main() {
 
     }
     updateRain(lines);
-    updateParents(lines);
+
+    printf("First line at 1m %lf \n", getYofX(lines[3], 1.0));
+    printf("TEST: preliminary rain on roofs:\n");
+    for (int i = 1; i < n+1; i++){
+        printf("%d \n", lines[i].totalDrip);
+    }
+    updateChildRoofs(lines);
     getAccumulatedDrip(lines);
 
     // Printing results
     for (int i = 1; i < n+1; i++){
-        printf("%d", lines[i].totalDrip);
+        printf("%d \n", lines[i].totalDrip);
     }
 
     return 0;
