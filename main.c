@@ -73,7 +73,7 @@ void updateRain(Line *lines) {
 }
 
 int getDripPoint(Line line) {
-    // Returns x value of lowest y coordinate, as drip-point.
+    // Returns x value of lowest y coordinate, as 'drip-point'.
     return (line.Y1 < line.Y2 ? line.X1 : line.X2);
 }
 
@@ -123,9 +123,9 @@ void getAccumulatedDrip(Line *lines) {
 
 int main() {
 
-    printf("Hello! This program prints the total water flow from each roof, represented by a line.\n"
-           "First: Please input the following info: Number of lines to check, followed by enter.\n"
-           "For all subsequent lines: Four coordinates separated by spaces, followed by enter.\n->");
+    //printf("Hello! This program prints the total water flow from each roof, represented by a line.\n"
+    //       "First: Please input the following info: Number of lines to check, followed by enter.\n"
+    //       "For all subsequent lines: Four coordinates separated by spaces, followed by enter.\n->");
 
     // Get number of lines: n
     scanf("%d", &n);
