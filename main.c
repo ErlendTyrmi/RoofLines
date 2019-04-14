@@ -16,19 +16,20 @@ typedef struct line {
 int n, highestX = 0;
 
 double getYofX(Line line, int x) {
-    // Calculating ax + b based on Left coordinate(X1, Y1)
-    double a = (double)(line.Y2 - line.Y1) / (double)(line.X2 - line.X1);
-    double b = (double)line.Y1 - a * (double)line.X1;
+    // Calculates y value for a given line and point.
+    double a = (double) (line.Y2 - line.Y1) / (double) (line.X2 - line.X1);
+    double b = (double) line.Y1 - a * (double) line.X1;
     return a * x + b;
 }
 
 bool firstIsLowest(Line low, Line high) {
-    // Find x value to test with. Takes highest right x. Works if x-values overlap!
+    // Find x value to test with. Takes highest right x. Only works if x-values overlap!
     int x = (low.X1 <= high.X1 ? high.X1 : low.X1);
     return getYofX(low, x) < getYofX(high, x) ? true : false;
 }
 
 bool overlapsPoint(Line line, int x) {
+    // returns whether a line overlaps a point, start point included.
     if (line.X1 <= x && line.X2 > x) {
         return true;
     } else {
@@ -37,6 +38,7 @@ bool overlapsPoint(Line line, int x) {
 }
 
 bool overlapsPointIncludingX2(Line line, int x) {
+    // returns whether a line overlaps a point, start and end point included.
     if (line.X1 <= x && line.X2 >= x) {
         return true;
     } else {
@@ -45,7 +47,7 @@ bool overlapsPointIncludingX2(Line line, int x) {
 }
 
 int getHighestLineAtXCoordinate(Line *lines, int x) {
-    // Method to return id of highest line at a certain point on the x-axis.
+    // Returns id of highest line at a certain point on the x-axis.
     int lineNumber = 0;
     for (int i = 1; i <= n; i++) {
         if (overlapsPoint(lines[i], x)) {
@@ -58,9 +60,8 @@ int getHighestLineAtXCoordinate(Line *lines, int x) {
 }
 
 void updateRain(Line *lines) {
-    // This method updates the totalDrip attribute in place (on the line struct).
-    int rainPoint;
-    int lineNumber;
+    // Updates the initial totalDrip attribute in place (on the line struct).
+    int rainPoint, lineNumber;
     for (int i = 0; i <= highestX; i++) {
         rainPoint = i;
         lineNumber = getHighestLineAtXCoordinate(lines, rainPoint);
@@ -72,10 +73,12 @@ void updateRain(Line *lines) {
 }
 
 int getDripPoint(Line line) {
+    // Returns x value of lowest y coordinate, as drip-point.
     return (line.Y1 < line.Y2 ? line.X1 : line.X2);
 }
 
 void updateChildRoofs(Line *lines) {
+    // Adds child roofs to all relevant lines.
     for (int i = 1; i < n + 1; i++) {
         int topLineID = 0;
         if (lines[i].totalDrip != 0) {
@@ -92,22 +95,26 @@ void updateChildRoofs(Line *lines) {
         }
 
         // Adding child roof to parent and marking child with 'isChild'.
-        if (topLineID != 0){
-                lines[i].childRoof = topLineID;
-                lines[topLineID].isChild = true;
+        if (topLineID != 0) {
+            lines[i].childRoof = topLineID;
+            lines[topLineID].isChild = true;
         }
     }
 }
 
-//TODO: add more layers
-void inheritRain(int lineID, Line *lines){
-    lines[lines[lineID].childRoof].totalDrip += lines[lineID].totalDrip;
+
+void inheritRain(int lineID, Line *lines) {
+    // Makes all descendants inherit rain from parent.
+    while (lineID != 0) {
+        lines[lines[lineID].childRoof].totalDrip += lines[lineID].totalDrip;
+        lineID = lines[lineID].childRoof;
+    }
 }
 
 
 void getAccumulatedDrip(Line *lines) {
-    // Lines with no parent pass on rain to all child roofs.
-    for (int i = 1; i < n+1; i++){
+    // Selects roofs with no parent, and lets descendant roofs inherit.
+    for (int i = 1; i < n + 1; i++) {
         if (!lines[i].isChild) {
             inheritRain(i, lines);
         }
@@ -125,7 +132,7 @@ int main() {
     Line lines[n + 1];
 
     // Make array of lines:
-    for (int i = 1; i < n+1; i++) {
+    for (int i = 1; i < n + 1; i++) {
         scanf("%d %d %d %d", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2);
         lines[i].totalDrip = 0;
         lines[i].childRoof = 0;
@@ -142,7 +149,7 @@ int main() {
     getAccumulatedDrip(lines);
 
     // Printing results
-    for (int i = 1; i < n+1; i++){
+    for (int i = 1; i < n + 1; i++) {
         printf("%d \n", lines[i].totalDrip);
     }
 
