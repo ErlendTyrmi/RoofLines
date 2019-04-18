@@ -8,12 +8,13 @@ typedef struct line {
     // Right (x,y)
     int X2;
     int Y2;
-    int totalDrip;
-    int childRoof;
+    int totalWater;
+    int childLineID;
     bool isChild;
+    bool isChecked;
 } Line;
 
-int n, highestX = 0;
+int n, highestX = 0, newRain = 0;
 
 double getYofX(Line line, int x) {
     // Calculates y value for a given line and point.
@@ -60,14 +61,14 @@ int getHighestLineAtXCoordinate(Line *lines, int x) {
 }
 
 void updateRain(Line *lines) {
-    // Updates the initial totalDrip attribute in place (on the line struct).
+    // Updates the initial totalWater attribute in place (on the line struct).
     int rainPoint, lineNumber;
     for (int i = 0; i <= highestX; i++) {
         rainPoint = i;
         lineNumber = getHighestLineAtXCoordinate(lines, rainPoint);
 
         if (lineNumber != 0) {
-            lines[lineNumber].totalDrip += 1;
+            lines[lineNumber].totalWater += 1;
         }
     }
 }
@@ -81,7 +82,7 @@ void updateChildRoofs(Line *lines) {
     // Adds child roofs to all relevant lines.
     for (int i = 1; i < n + 1; i++) {
         int topLineID = 0;
-        if (lines[i].totalDrip != 0) {
+        if (lines[i].totalWater != 0) {
 
             for (int j = 1; j < n + 1; j++) {
                 if (overlapsPointIncludingX2(lines[j], getDripPoint(lines[i])) && firstIsLowest(lines[j], lines[i])) {
@@ -96,7 +97,7 @@ void updateChildRoofs(Line *lines) {
 
         // Adding child roof to parent and marking child with 'isChild'.
         if (topLineID != 0) {
-            lines[i].childRoof = topLineID;
+            lines[i].childLineID = topLineID;
             lines[topLineID].isChild = true;
         }
     }
@@ -105,9 +106,17 @@ void updateChildRoofs(Line *lines) {
 
 void inheritRain(int lineID, Line *lines) {
     // Makes all descendants inherit rain from parent.
-    while (lineID != 0) {
-        lines[lines[lineID].childRoof].totalDrip += lines[lineID].totalDrip;
-        lineID = lines[lineID].childRoof;
+    newRain = lines[lineID].totalWater;
+
+    while (lines[lineID].childLineID != 0) {
+        lines[lines[lineID].childLineID].totalWater += newRain;
+
+        if (!lines[lines[lineID].childLineID].isChecked) {
+            lines[lines[lineID].childLineID].isChecked = true;
+            newRain = lines[lines[lineID].childLineID].totalWater;
+        }
+
+        lineID = lines[lineID].childLineID;
     }
 }
 
@@ -134,9 +143,10 @@ int main() {
     // Make array of lines:
     for (int i = 1; i < n + 1; i++) {
         scanf("%d %d %d %d", &lines[i].X1, &lines[i].Y1, &lines[i].X2, &lines[i].Y2);
-        lines[i].totalDrip = 0;
-        lines[i].childRoof = 0;
+        lines[i].totalWater = 0;
+        lines[i].childLineID = 0;
         lines[i].isChild = false;
+        lines[i].isChecked = false;
 
         // The one x value to rule them all..
         if (lines[i].X2 > highestX) {
@@ -150,7 +160,7 @@ int main() {
 
     // Printing results
     for (int i = 1; i < n + 1; i++) {
-        printf("%d \n", lines[i].totalDrip);
+        printf("%d \n", lines[i].totalWater);
     }
 
     return 0;
